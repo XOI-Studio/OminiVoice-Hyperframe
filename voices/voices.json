@@ -1,0 +1,86 @@
+{
+ "narrator_male": {
+  "category": "narrator",
+  "channel": "ChuyenMa",
+  "gender": "male",
+  "age": "young adult",
+  "description": "Người kể 'tôi' nam, trầm (mặc định)"
+ },
+ "narrator_female": {
+  "category": "narrator",
+  "channel": "ChuyenMa",
+  "gender": "female",
+  "age": "young adult",
+  "description": "Người kể 'tôi' nữ, trầm"
+ },
+ "storyteller": {
+  "category": "narrator",
+  "channel": "ChuyenMa",
+  "gender": "male",
+  "age": "elderly",
+  "description": "Giọng kể chính kênh Chuyện Ma: ông già kể chuyện, rất trầm, chậm, căng"
+ },
+ "sumuc": {
+  "category": "narrator",
+  "channel": "SuMuc",
+  "gender": "male",
+  "age": "middle-aged",
+  "description": "Người kể kênh Sử Mực: nam trung niên, trầm, rõ chữ"
+ },
+ "elder_male": {
+  "category": "character",
+  "channel": "ChuyenMa",
+  "gender": "male",
+  "age": "elderly",
+  "description": "Thầy bùa, ông, bố già"
+ },
+ "elder_female": {
+  "category": "character",
+  "channel": "ChuyenMa",
+  "gender": "female",
+  "age": "elderly",
+  "description": "Bà, má, hàng xóm lớn tuổi"
+ },
+ "old_female": {
+  "category": "character",
+  "channel": "ChuyenMa",
+  "gender": "female",
+  "age": "elderly",
+  "description": "Bà nội rất già, run run, khàn"
+ },
+ "man": {
+  "category": "character",
+  "channel": "ChuyenMa",
+  "gender": "male",
+  "age": "middle-aged",
+  "description": "Anh hai, bố, chú, đàn ông trung niên"
+ },
+ "woman": {
+  "category": "character",
+  "channel": "ChuyenMa",
+  "gender": "female",
+  "age": "middle-aged",
+  "description": "Mẹ, chị, phụ nữ trung niên"
+ },
+ "young_female": {
+  "category": "character",
+  "channel": "ChuyenMa",
+  "gender": "female",
+  "age": "young adult",
+  "description": "Cô gái trẻ, em gái"
+ },
+ "child": {
+  "category": "character",
+  "channel": "ChuyenMa",
+  "gender": "female",
+  "age": "child",
+  "description": "Trẻ con"
+ },
+ "ghost": {
+  "category": "special",
+  "channel": "ChuyenMa",
+  "gender": "female",
+  "age": "young adult",
+  "description": "Tiếng ma gọi, thì thầm (câu mẫu dùng dấu phẩy sẽ ổn định hơn dấu '…')"
+ }
+}

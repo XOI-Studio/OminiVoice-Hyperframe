@@ -1,0 +1,95 @@
+import hashlib
+import hmac
+import logging
+from typing import Literal
+
+from fastapi import Depends, FastAPI, Header, HTTPException
+from pydantic import BaseModel, Field
+
+from . import config
+from .audio import encode
+from .engine import Engine
+from .storage import S3Storage
+
+log = logging.getLogger("tts")
+app = FastAPI(title="OmniVoice TTS")
+app.state.engine = None
+app.state.storage = None
+
+
+def get_engine() -> Engine:
+    if app.state.engine is None:
+        app.state.engine = Engine()
+    return app.state.engine
+
+
+def get_storage() -> S3Storage:
+    if app.state.storage is None:
+        app.state.storage = S3Storage()
+    return app.state.storage
+
+
+def check_key(x_api_key: str = Header(default="")) -> None:
+    if config.API_KEY and not hmac.compare_digest(x_api_key, config.API_KEY):
+        raise HTTPException(401, "invalid API key")
+
+
+class TTSRequest(BaseModel):
+    text: str = Field(min_length=1)
+    voice: str = config.DEFAULT_VOICE
+    language: str = "vi"
+    format: Literal["wav", "mp3"] = "wav"
+    steps: int = Field(config.DEFAULT_STEPS, ge=4, le=64, description="16 = draft, 32 = final")
+    seed: int | None = Field(None, description="Reproducible output when set")
+    wpm: float | None = Field(None, gt=0, le=400, description="Target words per minute (optional pacing)")
+
+
+class TTSResponse(BaseModel):
+    url: str
+    voice: str
+    format: str
+    duration_s: float | None = None
+    cached: bool
+
+
+@app.on_event("startup")
+def warm() -> None:
+    if config.S3_BUCKET:  # skip in tests / local runs without S3
+        get_engine().load()
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
+@app.get("/voices", dependencies=[Depends(check_key)])
+def voices(category: str | None = None, channel: str | None = None, engine: Engine = Depends(get_engine)):
+    return {
+        name: meta for name, meta in engine.voices().items()
+        if (not category or meta.get("category") == category) and (not channel or meta.get("channel") == channel)
+    }
+
+
+@app.post("/tts", response_model=TTSResponse, dependencies=[Depends(check_key)])
+def tts(req: TTSRequest, engine: Engine = Depends(get_engine), storage: S3Storage = Depends(get_storage)):
+    text = req.text.strip()
+    if not text:
+        raise HTTPException(422, "text is empty")
+    if len(text) > config.MAX_TEXT_CHARS:
+        raise HTTPException(413, f"text exceeds {config.MAX_TEXT_CHARS} chars")
+    if req.voice not in engine.voices():
+        raise HTTPException(404, f"unknown voice '{req.voice}'; GET /voices for the list")
+
+    digest = hashlib.sha256(
+        f"{text}|{req.voice}|{req.language}|{req.steps}|{req.seed}|{req.wpm}|{req.format}".encode()
+    ).hexdigest()[:24]
+    key = f"{config.S3_PREFIX}/{req.voice}/{digest}.{req.format}" if config.S3_PREFIX else f"{req.voice}/{digest}.{req.format}"
+
+    if storage.exists(key):  # identical request already synthesized
+        return TTSResponse(url=storage.url(key), voice=req.voice, format=req.format, cached=True)
+
+    audio, sr = engine.synthesize(text, req.voice, req.language, req.steps, req.seed, req.wpm)
+    data, content_type = encode(audio, sr, req.format)
+    storage.put(key, data, content_type)
+    return TTSResponse(url=storage.url(key), voice=req.voice, format=req.format, duration_s=round(len(audio) / sr, 3), cached=False)
