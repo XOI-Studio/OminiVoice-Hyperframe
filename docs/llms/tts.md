@@ -2,14 +2,18 @@
 
 Synthesize speech from text with a fixed set of voices. The result is uploaded to S3 and returned as a public URL.
 
+This is the TTS service (`tts/`). Video rendering is a separate service with its own base URL: see [render](render.md).
+
+Base URL of the public deployment (Modal, GPU, scales to zero, first request after idle takes about 20 to 30 seconds): `https://jamesngdev--omnivoice-tts-web.us-east.modal.run`
+
 ## Authentication
-Send `X-API-Key: <key>` on every request except `GET /health`. If the server has no key configured, no auth is performed. A missing or wrong key returns `401 {"detail":"invalid API key"}`. Error bodies are always `{"detail": "<message>"}`, except `422` from request-body validation, where `detail` is a list of field errors.
+No API key is needed by default, including on the public deployment above. A deployment may set `API_KEY`; then send `X-API-Key: <key>` on every request except `GET /health`, and a missing or wrong key returns `401 {"detail":"invalid API key"}`. Error bodies are always `{"detail": "<message>"}`, except `422` from request-body validation, where `detail` is a list of field errors.
 
 ## GET /health
 Liveness. No auth. Returns `200 {"status":"ok"}`.
 
 ## GET /voices
-Lists available voices. Auth required.
+Lists available voices.
 - Query (optional): `category` (`narrator` | `character` | `special`), `channel`. Exact-match filters, combinable.
 - Response `200`: object keyed by voice name; each value holds metadata such as `category`, `channel`, `gender`, `age`, `description` (a voice without metadata has `{}`).
 - Call this before `POST /tts` to pick a valid `voice`.
@@ -19,7 +23,7 @@ Lists available voices. Auth required.
 ```
 
 ## POST /tts
-Synthesize `text` with a voice. Auth required. Idempotent: identical requests return the same file.
+Synthesize `text` with a voice. Idempotent: identical requests return the same file.
 
 Request body:
 | Field | Type | Required | Default | Constraints |
@@ -43,7 +47,7 @@ Response `200`:
 Errors:
 | Status | When | Client action |
 |---|---|---|
-| 401 | wrong or missing key | fix the key |
+| 401 | only when the deployment requires a key: wrong or missing key | send the right `X-API-Key` |
 | 404 | `unknown voice '<name>'; GET /voices for the list` | call `GET /voices` |
 | 413 | `text exceeds 8000 chars` | split the text and make several calls |
 | 422 | empty text, or a field fails its constraints (bad `format`, `steps` out of range, `wpm` out of range) | fix the request |
@@ -51,5 +55,5 @@ Errors:
 The URL works only if the bucket allows public read on `tts/*` (see [render docs](render.md#s3-layout-and-bucket-policy)).
 
 ## Related
-- [Video render](render.md): render a project whose audio came from `/tts`
+- [Video render](render.md): separate service that renders a project whose audio came from `/tts`
 - [Index](../../llms.txt)
