@@ -3,8 +3,8 @@ import zipfile
 from pathlib import PurePosixPath
 from pathlib import Path
 
-from .. import config
-from ..storage import TooManyObjects
+from . import config
+from .storage import TooManyObjects
 
 
 class SourceNotFound(Exception):

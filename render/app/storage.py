@@ -7,7 +7,6 @@ from botocore.exceptions import ClientError
 
 from . import config
 
-
 IMMUTABLE = "public, max-age=31536000, immutable"
 MISSING = {"NoSuchKey", "404", "NotFound"}
 
@@ -25,19 +24,6 @@ class S3Storage:
         if config.S3_PUBLIC_BASE_URL:
             return f"{config.S3_PUBLIC_BASE_URL}/{key}"
         return f"https://{config.S3_BUCKET}.s3.{config.S3_REGION}.amazonaws.com/{key}"
-
-    def exists(self, key: str) -> bool:
-        try:
-            self.client.head_object(Bucket=config.S3_BUCKET, Key=key)
-            return True
-        except ClientError:
-            return False
-
-    def put(self, key: str, data: bytes, content_type: str) -> None:
-        self.client.put_object(
-            Bucket=config.S3_BUCKET, Key=key, Body=data, ContentType=content_type,
-            CacheControl=IMMUTABLE,
-        )
 
     def list_keys(self, bucket: str, prefix: str, limit: int) -> list[tuple[str, int]]:
         out: list[tuple[str, int]] = []
