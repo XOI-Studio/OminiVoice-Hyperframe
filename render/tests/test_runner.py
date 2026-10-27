@@ -3,7 +3,7 @@ import stat
 import time
 from pathlib import Path
 
-from app.render.runner import run_render
+from app.runner import run_render
 
 
 def script(tmp_path: Path, body: str) -> str:

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from app.render.source import ProjectError, _copy_capped, SourceNotFound, fetch_project
+from app.source import ProjectError, _copy_capped, SourceNotFound, fetch_project
 from app.storage import TooManyObjects
 
 

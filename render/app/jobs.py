@@ -7,11 +7,11 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-from app import config
-from app.render.runner import run_render
-from app.render.source import ProjectError, SourceNotFound, fetch_project
-from app.render.validation import cli_args
-from app.storage import TooManyObjects
+from . import config
+from .runner import run_render
+from .source import ProjectError, SourceNotFound, fetch_project
+from .validation import cli_args
+from .storage import TooManyObjects
 
 log = logging.getLogger("render")
 

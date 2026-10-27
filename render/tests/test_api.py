@@ -3,8 +3,8 @@ from fastapi.testclient import TestClient
 
 from app import config
 from app.main import app, get_jobs
-from app.render.jobs import QueueFull
-from app.render.source import SourceNotFound
+from app.jobs import QueueFull
+from app.source import SourceNotFound
 
 JID = "a" * 32
 

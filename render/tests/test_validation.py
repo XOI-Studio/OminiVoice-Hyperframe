@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from app.render.validation import cli_args, validate_folder, validate_name
+from app.validation import cli_args, validate_folder, validate_name
 
 
 def test_rejects_empty_folder():

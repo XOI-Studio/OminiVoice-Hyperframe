@@ -1,6 +1,9 @@
 # Video render API
 
-Render a HyperFrames project stored in S3 into an mp4. Rendering takes minutes, so it is an asynchronous job: submit, then poll. The project (including its audio) must already be in S3; this API does not generate audio (use [POST /tts](tts.md#post-tts) separately).
+This is the render service (`render/`), separate from the TTS service and deployed on its own base URL (there is no public render deployment yet; use the URL of the deployment you run). It renders a HyperFrames project stored in S3 into an mp4. Rendering takes minutes, so it is an asynchronous job: submit, then poll. The project (including its audio) must already be in S3; this API does not generate audio (use [POST /tts](tts.md#post-tts) separately).
+
+## Authentication
+No API key is needed by default. If the deployment sets `API_KEY`, send `X-API-Key: <key>` on `POST /render` and `GET /jobs/{job_id}` (`GET /health` is always open).
 
 ## Flow
 1. `POST /render` with the S3 location of the project. Source existence is checked immediately; on success you get `202` and a `job_id`.
@@ -19,7 +22,7 @@ The project root must contain `index.html`, either directly at the root of the p
 `folder` rules: 1 to 512 characters after trimming, only `A-Z a-z 0-9 . _ / space -`, no leading `/`, no `//`, no backslash, no `..` path segment. Violations return 422.
 
 ## POST /render
-Queue a render job. Auth required. Not idempotent: each call creates a new job.
+Queue a render job. Not idempotent: each call creates a new job.
 
 Body:
 | Field | Type | Required | Default | Constraints |
@@ -40,7 +43,7 @@ Response `202`:
 Errors:
 | Status | Body detail | When | Client action |
 |---|---|---|---|
-| 401 | `invalid API key` | wrong or missing key | fix the key |
+| 401 | `invalid API key` | only when the deployment sets `API_KEY`: wrong or missing key | send the right `X-API-Key` |
 | 404 | `source not found` | prefix has no objects (outside `renders/`) or the zip key does not exist in the source bucket | check `folder` |
 | 422 | message, or field error list | invalid folder, name, quality, fps, format or workers | fix the request |
 | 429 | `render queue full` | 10 unfinished jobs already | retry later, after polling shows jobs finishing |
@@ -48,7 +51,7 @@ Errors:
 A source that exists but is not a valid project is accepted (202) and fails later in the job (see Job errors).
 
 ## GET /jobs/{job_id}
-Returns the current state of a job. Auth required. Safe to poll.
+Returns the current state of a job. Safe to poll.
 
 Response `200`:
 ```json
@@ -66,7 +69,7 @@ Response `200`:
 - `error`: set when `failed`. `log_tail`: last up to 4 KB of renderer output, set on timeout, non-zero exit or empty output; otherwise `null`.
 - `created_at`, `updated_at`: ISO 8601 UTC.
 
-Errors: `401` bad key; `404 job not found` for an unknown id or an id that is not 32 lowercase hex characters.
+Errors: `401` bad key (only when the deployment sets `API_KEY`); `404 job not found` for an unknown id or an id that is not 32 lowercase hex characters.
 
 ### The interrupted rule
 If the service restarts while a job is unfinished, that job can no longer progress. A later `GET` reports it as `status: "failed"` with `error: "interrupted (service restarted)"`. Resubmit with `POST /render` to retry.

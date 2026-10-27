@@ -1,8 +1,12 @@
-# OmniVoice TTS + HyperFrames Render API
+# OmniVoice TTS + HyperFrames Render
 
-> HTTP API that (1) synthesizes speech in one of 12 fixed voices and (2) renders a HyperFrames project stored in S3 to an mp4 through an asynchronous job. Both return public S3 URLs.
+> Two independent HTTP services in one repository. `tts/` synthesizes speech in one of 12 fixed voices. `render/` renders a HyperFrames project stored in S3 to an mp4 through an asynchronous job. Both return public file URLs (S3 or S3-compatible storage), never file bytes.
 
-All endpoints except `GET /health` require the `X-API-Key` header when the server is configured with an API key; when no key is configured, auth is off and the header is ignored. Bodies are JSON. Results are files in S3, returned as URLs, never as response bytes.
+No API key is needed by default. A deployment may set `API_KEY`, and then every endpoint except `GET /health` expects the `X-API-Key` header. Bodies are JSON.
+
+## Base URLs
+- TTS (public deployment on Modal, GPU, scales to zero; the first request after idle takes about 20 to 30 seconds): `https://jamesngdev--omnivoice-tts-web.us-east.modal.run`
+- Render: no public deployment yet. Run `render/` yourself and use its URL.
 
 ## Start here
 - [Text to speech](docs/llms/tts.md): `POST /tts`, `GET /voices`, `GET /health`, auth, caching, errors
@@ -11,11 +15,15 @@ All endpoints except `GET /health` require the `X-API-Key` header when the serve
 ## API
 - [POST /tts](docs/llms/tts.md#post-tts): synthesize text to wav or mp3
 - [GET /voices](docs/llms/tts.md#get-voices): list voices, optional filters
-- [GET /health](docs/llms/tts.md#get-health): liveness
+- [GET /health](docs/llms/tts.md#get-health): liveness (both services)
 - [POST /render](docs/llms/render.md#post-render): queue a render job (202)
 - [GET /jobs/{job_id}](docs/llms/render.md#get-jobsjobid): poll job status and result URL
 
 ## Reference
-- [Errors and auth](docs/llms/tts.md#authentication): 401, 404, 413, 422, 429 meanings
+- [Authentication and errors](docs/llms/tts.md#authentication): optional key, 401, 404, 413, 422 meanings
 - [S3 layout and bucket policy](docs/llms/render.md#s3-layout-and-bucket-policy): which prefixes must be public
 - [Limits](docs/llms/render.md#limits): queue size, timeout, download caps
+
+## Repository layout
+- `tts/`: TTS service (FastAPI, OmniVoice, Dockerfile, Modal deployment); details in `tts/README.md`
+- `render/`: render service (FastAPI, HyperFrames CLI, Dockerfile); details in `render/README.md`

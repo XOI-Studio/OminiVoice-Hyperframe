@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 
 from app import config
-from app.render.jobs import JobManager
+from app.jobs import JobManager
 
 pytestmark = pytest.mark.skipif(os.environ.get("HF_INTEGRATION") != "1", reason="set HF_INTEGRATION=1 to run real renders")
 

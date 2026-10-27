@@ -6,9 +6,9 @@ from pathlib import Path
 import pytest
 
 from app import config
-from app.render.jobs import JobManager, QueueFull
-from app.render.runner import RunResult
-from app.render.source import ProjectError, SourceNotFound
+from app.jobs import JobManager, QueueFull
+from app.runner import RunResult
+from app.source import ProjectError, SourceNotFound
 from app.storage import TooManyObjects
 
 
