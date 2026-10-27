@@ -13,7 +13,7 @@ RUN python3.12 -m venv /opt/venv
 ENV PATH=/opt/venv/bin:$PATH
 
 WORKDIR /app
-RUN pip install torch==2.8.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu124
+RUN pip install torch==2.8.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu126
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
